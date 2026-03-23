@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Watch4Me – AI YouTube Summarizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #111118;
+      --bg3: #16161f;
+      --border: rgba(255,255,255,0.08);
+      --purple: #7c3aed;
+      --purple-light: #a855f7;
+      --pink: #ec4899;
+      --red: #ef4444;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --card: rgba(255,255,255,0.04);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 64px;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 1.2rem; font-weight: 800; letter-spacing: -0.5px;
+    }
+    .logo-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .nav-links { display: flex; align-items: center; gap: 1.5rem; }
+    .nav-links a {
+      color: var(--muted); text-decoration: none; font-size: .9rem;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: .55rem 1.2rem; border-radius: 8px;
+      font-size: .9rem; font-weight: 600; cursor: pointer;
+      text-decoration: none; transition: all .2s; border: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff;
+      box-shadow: 0 0 20px rgba(124,58,237,.35);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 30px rgba(124,58,237,.55);
+    }
+    .btn-ghost {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.08); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center;
+      padding: 6rem 1.5rem 4rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 600px; border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(124,58,237,.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute; bottom: -100px; right: -100px;
+      width: 400px; height: 400px; border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(236,72,153,.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: .3rem .9rem; border-radius: 99px; margin-bottom: 1.5rem;
+      background: rgba(124,58,237,.15);
+      border: 1px solid rgba(124,58,237,.35);
+      font-size: .8rem; font-weight: 600; color: var(--purple-light);
+    }
+    .badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--purple-light); display: block; }
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 4.5rem);
+      font-weight: 900; line-height: 1.08;
+      letter-spacing: -2px; max-width: 820px;
+      margin-bottom: 1.4rem;
+    }
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--purple-light), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub {
+      font-size: 1.15rem; color: var(--muted); max-width: 540px;
+      line-height: 1.7; margin-bottom: 2.5rem;
+    }
+    .hero-cta { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 3.5rem; }
+    .btn-lg { padding: .8rem 2rem; font-size: 1rem; border-radius: 10px; }
+
+    /* ── MOCKUP ── */
+    .mockup-wrap {
+      width: 100%; max-width: 860px;
+      position: relative; margin: 0 auto;
+    }
+    .mockup-wrap::before {
+      content: '';
+      position: absolute; inset: -1px; border-radius: 16px;
+      background: linear-gradient(135deg, rgba(124,58,237,.5), rgba(236,72,153,.3));
+      z-index: 0;
+    }
+    .mockup {
+      position: relative; z-index: 1;
+      background: var(--bg3);
+      border-radius: 15px; overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .mockup-bar {
+      display: flex; align-items: center; gap: 6px;
+      padding: .7rem 1rem;
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+    }
+    .dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dot-r { background: #ef4444; }
+    .dot-y { background: #f59e0b; }
+    .dot-g { background: #22c55e; }
+    .mockup-url {
+      flex: 1; background: rgba(255,255,255,.05);
+      border-radius: 6px; padding: .25rem .75rem;
+      font-size: .78rem; color: var(--muted); text-align: center;
+    }
+    .mockup-body {
+      display: grid; grid-template-columns: 260px 1fr;
+      min-height: 380px;
+    }
+    .mock-sidebar {
+      background: var(--bg2); border-right: 1px solid var(--border);
+      padding: 1rem;
+    }
+    .mock-sidebar-title {
+      font-size: .7rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: .75rem;
+    }
+    .mock-playlist {
+      display: flex; flex-direction: column; gap: .4rem;
+    }
+    .mock-vid {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .5rem .6rem; border-radius: 8px;
+      background: rgba(255,255,255,.04); cursor: pointer;
+    }
+    .mock-vid.active { background: rgba(124,58,237,.2); border: 1px solid rgba(124,58,237,.3); }
+    .mock-thumb {
+      width: 40px; height: 27px; border-radius: 4px;
+      background: linear-gradient(135deg, #1e1e2e, #2d1f4e);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .mock-vid-info { flex: 1; overflow: hidden; }
+    .mock-vid-title { font-size: .72rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mock-vid-dur { font-size: .65rem; color: var(--muted); }
+    .mock-check { font-size: 12px; }
+    .mock-main { padding: 1.25rem; display: flex; flex-direction: column; gap: .9rem; }
+    .mock-video-header { display: flex; align-items: flex-start; gap: 1rem; }
+    .mock-video-thumb {
+      width: 120px; height: 68px; border-radius: 8px; flex-shrink: 0;
+      background: linear-gradient(135deg, #1a1a2e, #2d1f4e);
+      display: flex; align-items: center; justify-content: center; font-size: 28px;
+    }
+    .mock-video-meta { flex: 1; }
+    .mock-video-meta h3 { font-size: .88rem; font-weight: 700; margin-bottom: .3rem; }
+    .mock-video-meta p { font-size: .75rem; color: var(--muted); }
+    .mock-summary-label {
+      font-size: .7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--purple-light); margin-bottom: .4rem;
+    }
+    .mock-summary-lines { display: flex; flex-direction: column; gap: .35rem; }
+    .mock-line {
+      height: 10px; border-radius: 99px;
+      background: rgba(255,255,255,.08);
+    }
+    .mock-line.w100 { width: 100%; }
+    .mock-line.w85 { width: 85%; }
+    .mock-line.w70 { width: 70%; }
+    .mock-line.w90 { width: 90%; }
+    .mock-tags { display: flex; gap: .4rem; flex-wrap: wrap; }
+    .mock-tag {
+      padding: .2rem .6rem; border-radius: 99px; font-size: .68rem;
+      background: rgba(124,58,237,.15); color: var(--purple-light);
+      border: 1px solid rgba(124,58,237,.25); font-weight: 600;
+    }
+    .mock-actions { display: flex; gap: .6rem; margin-top: auto; }
+    .mock-btn {
+      padding: .35rem .75rem; border-radius: 6px; font-size: .72rem;
+      font-weight: 600; border: none; cursor: pointer;
+    }
+    .mock-btn-primary { background: linear-gradient(135deg, var(--purple), var(--pink)); color: #fff; }
+    .mock-btn-ghost { background: rgba(255,255,255,.07); color: var(--text); }
+
+    /* ── LOGOS / TRUST ── */
+    .trust {
+      text-align: center; padding: 3rem 1.5rem;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .trust p { font-size: .82rem; color: var(--muted); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
+    .trust-logos { display: flex; align-items: center; justify-content: center; gap: 2.5rem; flex-wrap: wrap; }
+    .trust-logo { font-size: .9rem; font-weight: 700; color: rgba(255,255,255,.2); letter-spacing: -.3px; }
+
+    /* ── FEATURES ── */
+    section { padding: 6rem 1.5rem; }
+    .container { max-width: 1080px; margin: 0 auto; }
+    .section-label {
+      display: inline-block; font-size: .78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px; color: var(--purple-light);
+      margin-bottom: .75rem;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800;
+      letter-spacing: -1px; line-height: 1.15; margin-bottom: 1rem;
+    }
+    .section-sub { font-size: 1.05rem; color: var(--muted); max-width: 500px; line-height: 1.7; margin-bottom: 3rem; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+    .feat-card {
+      padding: 1.75rem; border-radius: 16px;
+      background: var(--card); border: 1px solid var(--border);
+      transition: border-color .25s, transform .25s;
+    }
+    .feat-card:hover { border-color: rgba(124,58,237,.4); transform: translateY(-3px); }
+    .feat-icon {
+      width: 44px; height: 44px; border-radius: 10px; margin-bottom: 1rem;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+      background: linear-gradient(135deg, rgba(124,58,237,.2), rgba(236,72,153,.15));
+      border: 1px solid rgba(124,58,237,.25);
+    }
+    .feat-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: .5rem; }
+    .feat-card p { font-size: .88rem; color: var(--muted); line-height: 1.65; }
+
+    /* ── HOW IT WORKS ── */
+    .how-section { background: var(--bg2); }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; }
+    .step { text-align: center; }
+    .step-num {
+      width: 52px; height: 52px; border-radius: 50%; margin: 0 auto 1.25rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      box-shadow: 0 0 24px rgba(124,58,237,.4);
+    }
+    .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: .5rem; }
+    .step p { font-size: .88rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── PRICING ── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem; max-width: 960px; margin: 0 auto;
+    }
+    .price-card {
+      padding: 2rem; border-radius: 20px;
+      background: var(--card); border: 1px solid var(--border);
+      position: relative; transition: transform .25s;
+    }
+    .price-card:hover { transform: translateY(-4px); }
+    .price-card.popular {
+      background: linear-gradient(180deg, rgba(124,58,237,.12) 0%, rgba(236,72,153,.06) 100%);
+      border-color: rgba(124,58,237,.4);
+    }
+    .popular-badge {
+      position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+      padding: .25rem .9rem; border-radius: 99px; font-size: .73rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff; white-space: nowrap;
+    }
+    .plan-name { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: .5rem; }
+    .plan-price {
+      font-size: 2.8rem; font-weight: 900; letter-spacing: -2px;
+      margin-bottom: .25rem;
+      background: linear-gradient(135deg, var(--text), var(--muted));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .plan-price span { font-size: 1rem; font-weight: 500; }
+    .plan-tag {
+      display: inline-block; padding: .2rem .7rem; border-radius: 99px;
+      font-size: .72rem; font-weight: 700; margin-bottom: 1.25rem;
+    }
+    .tag-free { background: rgba(34,197,94,.15); color: #22c55e; border: 1px solid rgba(34,197,94,.25); }
+    .tag-beta { background: rgba(124,58,237,.15); color: var(--purple-light); border: 1px solid rgba(124,58,237,.25); }
+    .plan-desc { font-size: .88rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: .7rem; margin-bottom: 2rem; }
+    .plan-features li { display: flex; align-items: flex-start; gap: .6rem; font-size: .88rem; }
+    .plan-features li::before { content: '✓'; color: #22c55e; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .plan-features li.no::before { content: '✗'; color: rgba(255,255,255,.2); }
+    .plan-features li.no { color: var(--muted); }
+    .btn-plan {
+      width: 100%; padding: .75rem; border-radius: 10px; font-size: .92rem; font-weight: 700;
+      cursor: pointer; border: none; transition: all .2s;
+    }
+    .btn-plan-primary {
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff; box-shadow: 0 0 20px rgba(124,58,237,.3);
+    }
+    .btn-plan-primary:hover { box-shadow: 0 0 30px rgba(124,58,237,.5); transform: translateY(-1px); }
+    .btn-plan-ghost {
+      background: rgba(255,255,255,.06); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-plan-ghost:hover { background: rgba(255,255,255,.1); }
+
+    /* ── CTA BANNER ── */
+    .cta-section {
+      padding: 5rem 1.5rem;
+      background: var(--bg2); text-align: center;
+    }
+    .cta-inner {
+      max-width: 680px; margin: 0 auto;
+      position: relative;
+    }
+    .cta-inner::before {
+      content: '';
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 600px; height: 300px; border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(124,58,237,.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-inner h2 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900; letter-spacing: -1.5px;
+      margin-bottom: 1rem; position: relative;
+    }
+    .cta-inner p { font-size: 1.05rem; color: var(--muted); margin-bottom: 2rem; line-height: 1.7; position: relative; }
+    .cta-inner .btn { position: relative; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 3rem 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .footer-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .footer-links a { font-size: .85rem; color: var(--muted); text-decoration: none; transition: color .2s; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-size: .82rem; color: rgba(255,255,255,.2); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .hero > * { animation: fadeUp .6s ease both; }
+    .hero > *:nth-child(1) { animation-delay: .1s; }
+    .hero > *:nth-child(2) { animation-delay: .2s; }
+    .hero > *:nth-child(3) { animation-delay: .3s; }
+    .hero > *:nth-child(4) { animation-delay: .4s; }
+    .hero > *:nth-child(5) { animation-delay: .5s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .mockup-body { grid-template-columns: 1fr; }
+      .mock-sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-icon">▶</div>
+    Watch4Me
+  </div>
+  <div class="nav-links">
+    <a href="#features">Funkcje</a>
+    <a href="#how">Jak działa</a>
+    <a href="#pricing">Plany</a>
+  </div>
+  <div style="display:flex;gap:.75rem">
+    <a href="#" class="btn btn-ghost">Zaloguj</a>
+    <a href="#" class="btn btn-primary">Zacznij za darmo</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge"><span></span> Powered by AI · Beta za darmo</div>
+  <h1>Podsumuj każdą playlistę<br/>YouTube <em>w sekundy</em></h1>
+  <p class="hero-sub">Watch4Me analizuje setki filmów naraz, wyciąga najważniejsze informacje i eksportuje gotowe streszczenia – bez oglądania ani jednej minuty.</p>
+  <div class="hero-cta">
+    <a href="#" class="btn btn-primary btn-lg">▶ Zacznij za darmo</a>
+    <a href="#how" class="btn btn-ghost btn-lg">Jak to działa →</a>
+  </div>
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mockup-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <div class="mockup-url">app.watch4me.ai · Moje playlisty</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mock-sidebar">
+          <div class="mock-sidebar-title">📋 Playlista (5 filmów)</div>
+          <div class="mock-playlist">
+            <div class="mock-vid active">
+              <div class="mock-thumb">▶</div>
+              <div class="mock-vid-info">
+                <div class="mock-vid-title">React 18 – nowe funkcje</div>
+                <div class="mock-vid-dur">42:15</div>
+              </div>
+              <div class="mock-check">✓</div>
+            </div>
+            <div class="mock-vid">
+              <div class="mock-thumb">▶</div>
+              <div class="mock-vid-info">
+                <div class="mock-vid-title">TypeScript Deep Dive</div>
+                <div class="mock-vid-dur">1:08:02</div>
+              </div>
+              <div class="mock-check" style="color:var(--muted)">◌</div>
+            </div>
+            <div class="mock-vid">
+              <div class="mock-thumb">▶</div>
+              <div class="mock-vid-info">
+                <div class="mock-vid-title">Next.js 14 Tutorial</div>
+                <div class="mock-vid-dur">55:30</div>
+              </div>
+              <div class="mock-check" style="color:var(--muted)">◌</div>
+            </div>
+            <div class="mock-vid">
+              <div class="mock-thumb">▶</div>
+              <div class="mock-vid-info">
+                <div class="mock-vid-title">TailwindCSS Crash Course</div>
+                <div class="mock-vid-dur">28:44</div>
+              </div>
+              <div class="mock-check" style="color:var(--muted)">◌</div>
+            </div>
+          </div>
+        </div>
+        <div class="mock-main">
+          <div class="mock-video-header">
+            <div class="mock-video-thumb">▶</div>
+            <div class="mock-video-meta">
+              <h3>React 18 – nowe funkcje i concurrent mode</h3>
+              <p>Fireship · 1.2M wyświetleń · 42 min</p>
+            </div>
+          </div>
+          <div>
+            <div class="mock-summary-label">✦ Streszczenie AI</div>
+            <div class="mock-summary-lines">
+              <div class="mock-line w100"></div>
+              <div class="mock-line w90"></div>
+              <div class="mock-line w85"></div>
+              <div class="mock-line w100"></div>
+              <div class="mock-line w70"></div>
+            </div>
+          </div>
+          <div>
+            <div class="mock-summary-label">🏷 Tematy</div>
+            <div class="mock-tags">
+              <div class="mock-tag">React</div>
+              <div class="mock-tag">Concurrent Mode</div>
+              <div class="mock-tag">Hooks</div>
+              <div class="mock-tag">Performance</div>
+            </div>
+          </div>
+          <div class="mock-actions">
+            <button class="mock-btn mock-btn-primary">⬇ Eksportuj PDF</button>
+            <button class="mock-btn mock-btn-ghost">Markdown</button>
+            <button class="mock-btn mock-btn-ghost">Notion</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<div class="trust">
+  <p>Zaufali nam twórcy z</p>
+  <div class="trust-logos">
+    <div class="trust-logo">YouTube Creators</div>
+    <div class="trust-logo">EdTech Startups</div>
+    <div class="trust-logo">Digital Marketers</div>
+    <div class="trust-logo">Content Teams</div>
+    <div class="trust-logo">Researchers</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="section-label">✦ Funkcje</div>
+    <h2 class="section-title">Wszystko czego potrzebujesz<br/>do masowego streszczania</h2>
+    <p class="section-sub">Od pojedynczego filmu do tysięcy filmów z playlisty – Watch4Me robi to automatycznie.</p>
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon">📋</div>
+        <h3>Import całej playlisty</h3>
+        <p>Wklej link do playlisty YouTube i Watch4Me automatycznie pobierze i przeanalizuje wszystkie filmy naraz.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🤖</div>
+        <h3>Streszczenia AI</h3>
+        <p>Zaawansowany model AI wyciąga kluczowe punkty, wnioski i cytaty z każdego filmu w sekundy.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⬇</div>
+        <h3>Eksport w wielu formatach</h3>
+        <p>Eksportuj streszczenia jako PDF, Markdown, Notion, Word lub CSV – gotowe do użycia od razu.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔖</div>
+        <h3>Timestampy i rozdziały</h3>
+        <p>Automatyczne wykrywanie rozdziałów i znaczników czasowych, żebyś wiedział gdzie szukać szczegółów.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🌐</div>
+        <h3>Wiele języków</h3>
+        <p>Analizuj filmy w dowolnym języku i otrzymuj streszczenia po polsku lub angielsku.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚡</div>
+        <h3>Masowe przetwarzanie</h3>
+        <p>Przetwarzaj setki filmów równolegle. Playlista z 50 filmami – gotowa w mniej niż 2 minuty.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="how-section">
+  <div class="container" style="text-align:center">
+    <div class="section-label">✦ Jak to działa</div>
+    <h2 class="section-title" style="margin-bottom:.75rem">3 kroki do gotowego streszczenia</h2>
+    <p class="section-sub" style="margin:0 auto 3.5rem">Żadnej instalacji, żadnej konfiguracji. Działa w przeglądarce.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Wklej link</h3>
+        <p>Podaj URL pojedynczego filmu, playlisty lub kanału YouTube.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>AI przetwarza</h3>
+        <p>Nasz model analizuje transkrypcje i generuje precyzyjne streszczenia.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Eksportuj</h3>
+        <p>Pobierz wyniki w wybranym formacie lub wyślij bezpośrednio do Notion.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="container" style="text-align:center">
+    <div class="section-label">✦ Plany</div>
+    <h2 class="section-title" style="margin-bottom:.75rem">Wszystkie plany bezpłatne w Beta</h2>
+    <p class="section-sub" style="margin:0 auto 3.5rem">Korzystaj z pełnych funkcji za darmo podczas okresu beta. Żadnej karty kredytowej.</p>
+    <div class="pricing-grid">
+
+      <!-- FREE -->
+      <div class="price-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0<span>/mies</span></div>
+        <div class="plan-tag tag-free">Zawsze darmowy</div>
+        <p class="plan-desc">Idealny do przetestowania i okazjonalnego użycia.</p>
+        <ul class="plan-features">
+          <li>5 filmów / miesiąc</li>
+          <li>Streszczenia AI</li>
+          <li>Eksport PDF</li>
+          <li class="no">Import playlist</li>
+          <li class="no">Eksport Markdown / Notion</li>
+          <li class="no">Masowe przetwarzanie</li>
+        </ul>
+        <button class="btn-plan btn-plan-ghost">Zacznij za darmo</button>
+      </div>
+
+      <!-- PLUS -->
+      <div class="price-card popular">
+        <div class="popular-badge">✦ Najpopularniejszy</div>
+        <div class="plan-name">Plus</div>
+        <div class="plan-price">$0<span>/mies</span></div>
+        <div class="plan-tag tag-beta">Beta – bezpłatny</div>
+        <p class="plan-desc">Dla twórców i marketerów potrzebujących więcej mocy.</p>
+        <ul class="plan-features">
+          <li>100 filmów / miesiąc</li>
+          <li>Streszczenia AI</li>
+          <li>Eksport PDF, Markdown</li>
+          <li>Import playlist YouTube</li>
+          <li>Eksport do Notion</li>
+          <li class="no">Masowe przetwarzanie</li>
+        </ul>
+        <button class="btn-plan btn-plan-primary">Zacznij z Plus →</button>
+      </div>
+
+      <!-- PRO -->
+      <div class="price-card">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$0<span>/mies</span></div>
+        <div class="plan-tag tag-beta">Beta – bezpłatny</div>
+        <p class="plan-desc">Dla zespołów i power userów bez żadnych ograniczeń.</p>
+        <ul class="plan-features">
+          <li>Nieograniczone filmy</li>
+          <li>Streszczenia AI (priorytet)</li>
+          <li>Eksport PDF, Markdown, Word, CSV</li>
+          <li>Import playlist i kanałów</li>
+          <li>Eksport do Notion + Zapier</li>
+          <li>Masowe przetwarzanie (równoległe)</li>
+        </ul>
+        <button class="btn-plan btn-plan-ghost">Zacznij z Pro →</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<div class="cta-section">
+  <div class="cta-inner">
+    <h2>Przestań marnować czas<br/>na oglądanie filmów</h2>
+    <p>Dołącz do tysięcy użytkowników którzy już korzystają z Watch4Me do nauki, researchu i tworzenia treści.</p>
+    <a href="#" class="btn btn-primary btn-lg">▶ Zacznij za darmo – bez karty</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="logo">
+      <div class="logo-icon" style="width:26px;height:26px;font-size:13px">▶</div>
+      Watch4Me
+    </div>
+    <div class="footer-links">
+      <a href="#">Prywatność</a>
+      <a href="#">Warunki</a>
+      <a href="#">Blog</a>
+      <a href="#">Kontakt</a>
+    </div>
+    <div class="footer-copy">© 2024 Watch4Me. Wszystkie prawa zastrzeżone.</div>
+  </div>
+</footer>
+
+</body>
+</html>
